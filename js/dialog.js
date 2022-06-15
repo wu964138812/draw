@@ -46,4 +46,5 @@
   $.confirm = function(msg, cb) { dbox('confirm', msg, cb);};
   $.process_cancel = function(msg, cb) {  dbox('process', msg, cb);};
   $.prompt = function(msg, txt, cb) { dbox('prompt', msg, cb, txt);};
+  $.dialog = function(msg, cb) { dbox('dialog', msg, cb);};
 }());

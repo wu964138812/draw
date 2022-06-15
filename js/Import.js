@@ -2,11 +2,13 @@ MD.Import = function(){
   const workarea = document.getElementById("workarea");
   const $importInput = $('#tool_import input');
   const $openInput = $('#tool_open input');
-
+  let fileKey = null;
+  let clickDom = null;
   $importInput.on("change", importImage);
   $openInput.on("change", openImage);
 
   function importImage(e){
+    const canvasContent = localStorage.getItem("md-canvasContent");
     $('#menu_bar').removeClass('active')
     if (!window.FileReader) return;
     //e.stopPropagation();
@@ -18,7 +20,10 @@ MD.Import = function(){
     else file = this.files[0];
     if (!file) return $.alert("File not found");
     if (file.type.indexOf("image") === -1) return $.alert("File is not image"); 
-
+    if(file.size>1070074.5) {
+      $.alert("图片大小不能超过1MB！");
+      return 
+    } 
     //svg handing
     if(file.type.indexOf("svg") != -1) {
       var reader = new FileReader();
@@ -33,6 +38,12 @@ MD.Import = function(){
 
     //image handling
     else {
+      if(canvasContent) {
+        $.dialog("<h4>当前已有内容信息</h4><p>如果上传将清空原有面板内容是否继续</p>",callback);
+        fileKey = file;
+        clickDom = e;
+        return
+      }
       var reader = new FileReader();
       reader.onloadend = function(e) {
         // lets insert the new image until we know its dimensions
@@ -72,7 +83,60 @@ MD.Import = function(){
     
     //editor.saveCanvas();
   }
-
+  function callback(params) {
+    var dims = state.get("canvasSize");
+    if(params){
+      state.set("canvasMode", "select")
+      svgCanvas.clear();
+      svgCanvas.setResolution(dims[0], dims[1]);
+      editor.canvas.update(true);
+      editor.zoom.reset();
+      editor.panel.updateContextPanel();
+      editor.paintBox.fill.prep();
+      editor.paintBox.stroke.prep();
+      svgCanvas.runExtensions('onNewDocument');
+      sessionStorage.setItem("IsImport",  true);
+      setTimeout(() => {
+        var reader = new FileReader();
+        reader.onloadend = function(clickDom) {
+          // lets insert the new image until we know its dimensions
+          insertNewImage = function(img_width, img_height){
+              var newImage = svgCanvas.addSvgElementFromJson({
+              "element": "image",
+              "attr": {
+                "x": 0,
+                "y": 0,
+                "width": img_width,
+                "height": img_height,
+                "id": svgCanvas.getNextId(),
+                "style": "pointer-events:inherit"
+              }
+            });
+            svgCanvas.setHref(newImage, clickDom.target.result);
+            svgCanvas.selectOnly([newImage])
+            svgCanvas.alignSelectedElements("m", "page")
+            svgCanvas.alignSelectedElements("c", "page")
+            editor.panel.updateContextPanel();
+          }
+          // put a placeholder img so we know the default dimensions
+          var img_width = 100;
+          var img_height = 100;
+          var img = new Image()
+          img.src = clickDom.target.result
+          document.body.appendChild(img);
+          img.onload = function() {
+            img_width = img.offsetWidth
+            img_height = img.offsetHeight
+            insertNewImage(img_width, img_height);
+            document.body.removeChild(img);
+          }
+        };
+        reader.readAsDataURL(fileKey)
+      }, 200);
+    } else {
+      fileKey = null
+    }
+  }
   function loadSvgString(str, callback) {
     var success = svgCanvas.setSvgString(str) !== false;
     callback = callback || $.noop;

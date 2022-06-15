@@ -49,6 +49,9 @@
 #workarea.fhpath {
   cursor: url(../images/pencil_cursor.png) 0 16, crosshair;
 }
+#workarea.xpc {
+  cursor: url(../images/xiangpica.png) 0 16, crosshair;
+}
 
 #workarea.rotate * {
   cursor: url(../images/rotate.png) 12 12, auto;

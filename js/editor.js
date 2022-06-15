@@ -21,6 +21,7 @@ MD.Editor = function(){
       editor.paintBox.fill.prep();
       editor.paintBox.stroke.prep();
       svgCanvas.runExtensions('onNewDocument');
+      sessionStorage.setItem("IsImport",  true);
     });
   }
 

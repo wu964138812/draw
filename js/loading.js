@@ -1,5 +1,4 @@
 (function(){
-  debugger
   const canvasContent = localStorage.getItem("md-canvasContent");
   const isDark = localStorage.getItem("md-darkmode");
   if (!isDark && isDark !== null) document.body.classList.add("inverted");
